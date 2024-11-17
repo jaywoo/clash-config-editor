@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="千织 Clash 配置编辑器 - 一个简单易用的在线 Clash 配置文件编辑工具。支持代理、代理组和规则的可视化编辑，让配置过程更加直观和高效。">
+    <meta name="keywords" content="千织,qianzhi.cc,Clash,配置编辑器,代理配置,规则配置,代理组配置,在线工具">
+    <meta name="author" content="千织">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://qianzhi.cc/">
+    <meta property="og:title" content="千织 Clash 配置编辑器 - 在线可视化编辑工具">
+    <meta property="og:description" content="简单易用的 Clash 配置文件编辑工具，支持代理、代理组和规则的可视化编辑。">
+    <meta property="og:image" content="https://qianzhi.cc/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://qianzhi.cc/">
+    <meta property="twitter:title" content="千织 Clash 配置编辑器 - 在线可视化编辑工具">
+    <meta property="twitter:description" content="简单易用的 Clash 配置文件编辑工具，支持代理、代理组和规则的可视化编辑。">
+    <meta property="twitter:image" content="https://qianzhi.cc/twitter-image.jpg">
+
+    <title>千织 Clash 配置编辑器 - 在线可视化编辑工具</title>
+    <link rel="canonical" href="https://qianzhi.cc/">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background-color: #f8f9fa;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .section-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .section-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 15px;
+        }
+        
+        .section-content.collapsed {
+            max-height: 0;
+            padding: 0;
+            border: none;
+        }
+        
+        .config-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .config-item.collapsed {
+            max-height: 40px;
+            overflow: hidden;
+            padding: 8px 15px;
+        }
+        
+        .config-item .btn {
+            margin-right: 5px;
+        }
+        
+        .btn-add {
+            margin: 10px 0;
+        }
+        
+        #error-message {
+            display: none;
+            color: #dc3545;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            background-color: #f8d7da;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+        
+        /* 代理列表相关样式 */
+        .proxy-list-container {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+        
+        .selected-proxies {
+            min-height: 40px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 5px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        
+        .selected-proxy {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+        
+        .selected-proxy .badge {
+            margin-right: 5px;
+        }
+        
+        .selected-proxy .btn-sm {
+            padding: 0px 4px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        .input-group {
+            margin-top: 10px;
+        }
+        
+        .input-group select {
+            flex: 1;
+        }
+        
+        .input-group .btn {
+            margin-left: 10px;
+        }
+        
+        /* 代理设置相关样式 */
+        .proxy-settings {
+            padding: 10px;
+            margin-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .form-label {
+            font-weight: 500;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            padding: 1rem;
+        }
+        
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875em;
+        }
+        
+        .was-validated .form-control:invalid {
+            border-color: #dc3545;
+        }
+        
+        .was-validated .form-control:invalid + .invalid-feedback {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">千织 Clash 配置编辑器</h1>
+        
+        <!-- 错误信息显示区域 -->
+        <div id="error-message" class="alert alert-danger"></div>
+        
+        <!-- 步骤 1: 输入配置 -->
+        <div id="step1" class="mb-4">
+            <div class="form-group">
+                <label for="configInput">请粘贴您的 Clash 配置文件内容：</label>
+                <textarea class="form-control" id="configInput" rows="10"></textarea>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="parseConfig()">下一步</button>
+        </div>
+
+        <!-- 步骤 2: 编辑配置 -->
+        <div id="step2" class="hidden">
+            <div id="configEditor">
+                <!-- 基础配置 -->
+                <div class="config-section mb-4">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <h3 class="mb-0">基础配置</h3>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="section-content">
+                        <div id="basicConfig"></div>
+                    </div>
+                </div>
+
+                <!-- 代理配置 -->
+                <div class="config-section mb-4">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <h3 class="mb-0">代理配置</h3>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="section-content">
+                        <div id="proxiesConfig">
+                            <button class="btn btn-success mb-3 btn-add" onclick="addProxy()">添加代理</button>
+                            <div id="proxyList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 代理组配置 -->
+                <div class="config-section mb-4">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <h3 class="mb-0">代理组配置</h3>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="section-content">
+                        <div id="proxyGroupsConfig">
+                            <button class="btn btn-success mb-3 btn-add" onclick="addProxyGroup()">添加代理组</button>
+                            <div id="proxyGroupList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 规则配置 -->
+                <div class="config-section mb-4">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <h3 class="mb-0">规则配置</h3>
+                        <i class="bi bi-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="section-content">
+                        <div id="rulesConfig">
+                            <button class="btn btn-success mb-3 btn-add" onclick="addRule()">添加规则</button>
+                            <div id="rulesList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="generateConfig()">保存配置</button>
+        </div>
+    </div>
+
+    <!-- 添加代理的模态框 -->
+    <div class="modal fade" id="addProxyModal" tabindex="-1" aria-labelledby="addProxyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProxyModalLabel">添加代理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProxyForm">
+                        <div class="mb-3">
+                            <label for="proxyName" class="form-label">名称</label>
+                            <input type="text" class="form-control" id="proxyName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="proxyType" class="form-label">类型</label>
+                            <select class="form-control" id="proxyType" required>
+                                <option value="ss">Shadowsocks</option>
+                                <option value="vmess">VMess</option>
+                                <option value="trojan">Trojan</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="proxyServer" class="form-label">服务器</label>
+                            <input type="text" class="form-control" id="proxyServer" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="proxyPort" class="form-label">端口</label>
+                            <input type="number" class="form-control" id="proxyPort" required>
+                        </div>
+                        <div id="ssSettings" class="proxy-settings">
+                            <div class="mb-3">
+                                <label for="ssPassword" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="ssPassword">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ssMethod" class="form-label">加密方式</label>
+                                <select class="form-control" id="ssMethod">
+                                    <option value="aes-256-gcm">aes-256-gcm</option>
+                                    <option value="chacha20-poly1305">chacha20-poly1305</option>
+                                    <option value="aes-128-gcm">aes-128-gcm</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="vmessSettings" class="proxy-settings" style="display: none;">
+                            <div class="mb-3">
+                                <label for="vmessUUID" class="form-label">UUID</label>
+                                <input type="text" class="form-control" id="vmessUUID">
+                            </div>
+                            <div class="mb-3">
+                                <label for="vmessAlterId" class="form-label">AlterID</label>
+                                <input type="number" class="form-control" id="vmessAlterId" value="0">
+                            </div>
+                        </div>
+                        <div id="trojanSettings" class="proxy-settings" style="display: none;">
+                            <div class="mb-3">
+                                <label for="trojanPassword" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="trojanPassword">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAddProxy()">添加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- 添加代理组模态框 -->
+<div class="modal fade" id="addProxyGroupModal" tabindex="-1" aria-labelledby="addProxyGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProxyGroupModalLabel">添加代理组</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProxyGroupForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="proxyGroupName" class="form-label">名称</label>
+                        <input type="text" class="form-control" id="proxyGroupName" required>
+                        <div class="invalid-feedback">请输入代理组名称</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="proxyGroupType" class="form-label">类型</label>
+                        <select class="form-control" id="proxyGroupType" required>
+                            <option value="select">Select</option>
+                            <option value="url-test">URL-Test</option>
+                            <option value="fallback">Fallback</option>
+                            <option value="load-balance">Load Balance</option>
+                        </select>
+                        <div class="invalid-feedback">请选择代理组类型</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="proxyGroupUrl" class="form-label">URL (用于测试)</label>
+                        <input type="url" class="form-control" id="proxyGroupUrl" value="http://www.gstatic.com/generate_204">
+                        <div class="invalid-feedback">请输入有效的URL</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="proxyGroupInterval" class="form-label">测试间隔 (秒)</label>
+                        <input type="number" class="form-control" id="proxyGroupInterval" value="300" min="1">
+                        <div class="invalid-feedback">请输入有效的测试间隔</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddProxyGroup()">添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 添加规则模态框 -->
+<div class="modal fade" id="addRuleModal" tabindex="-1" aria-labelledby="addRuleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRuleModalLabel">添加规则</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRuleForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="ruleType" class="form-label">规则类型</label>
+                        <select class="form-control" id="ruleType" required>
+                            <option value="DOMAIN">DOMAIN</option>
+                            <option value="DOMAIN-SUFFIX">DOMAIN-SUFFIX</option>
+                            <option value="DOMAIN-KEYWORD">DOMAIN-KEYWORD</option>
+                            <option value="IP-CIDR">IP-CIDR</option>
+                            <option value="GEOIP">GEOIP</option>
+                            <option value="MATCH">MATCH</option>
+                        </select>
+                        <div class="invalid-feedback">请选择规则类型</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ruleValue" class="form-label">规则值</label>
+                        <input type="text" class="form-control" id="ruleValue" required>
+                        <div class="invalid-feedback">请输入规则值</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ruleProxy" class="form-label">代理</label>
+                        <select class="form-control" id="ruleProxy" required>
+                            <!-- 这里的选项将由 JavaScript 动态填充 -->
+                        </select>
+                        <div class="invalid-feedback">请选择代理</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddRule()">添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- 先加载基础库 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 使用本地的 js-yaml -->
+    <script src="js-yaml.min.js"></script>
+    
+    <!-- 添加错误处理和折叠功能 -->
+    <script>
+        // 折叠功能
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('collapsed');
+            content.classList.toggle('collapsed');
+            
+            // 设置合适的最大高度
+            if (!content.classList.contains('collapsed')) {
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else {
+                content.style.maxHeight = "0";
+            }
+        }
+
+        // 全局错误处理
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            showError('发生错误：' + msg);
+            console.error('Error details:', {
+                message: msg,
+                url: url,
+                lineNo: lineNo,
+                columnNo: columnNo,
+                error: error
+            });
+            return false;
+        };
+
+        // 显示错误信息的函数
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // 确保 js-yaml 已正确加载
+        window.addEventListener('load', function() {
+            if (typeof jsyaml === 'undefined') {
+                showError('js-yaml 库加载失败，请检查网络连接并刷新页面');
+                console.error('js-yaml is not defined');
+            } else {
+                console.log('js-yaml loaded successfully');
+                try {
+                    const test = jsyaml.load('test: true');
+                    if (test && test.test === true) {
+                        console.log('js-yaml is working correctly');
+                    }
+                } catch (e) {
+                    console.error('js-yaml test failed:', e);
+                    showError('js-yaml 库加载异常，请刷新页面重试');
+                }
+            }
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

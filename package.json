@@ -1,0 +1,11 @@
+{
+  "name": "clash-config-editor",
+  "version": "1.0.0",
+  "description": "A web-based editor for Clash configuration files",
+  "scripts": {
+    "start": "http-server -p 8080"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
